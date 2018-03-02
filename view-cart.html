@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Shopping Cart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js" integrity="sha384-feJI7QwhOS+hwpX2zkaeJQjeiwlhOP+SdQDqhgvvo1DsjtiSQByFdThsxO669S2D"
+        crossorigin="anonymous"></script>
+    <script src="assets/js/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class='jumbotron'>
+            <a href='index.html'>
+                <!-- Enter your online store's name here-->
+                <h1>Idi's Online Store</h1>
+            </a>
+        </div>
+        <h3>Checkout Page</h3>
+
+        <!-- Place to put the orders in the cart -->
+        <div id="order-placements" class='my-3 table-responsive'>
+        </div>
+
+        <!-- Shipping Information Form -->
+        <div id="shipping-info">
+            <div class='row'>
+                <div class="form-group col-md-6">
+
+                    <!-- Enter user's first name -->
+                    <label for="f_name">First Name:</label>
+                    <input type="text" class="form-control" id="f_name">
+                </div>
+                <div class="form-group col-md-6">
+
+                    <!-- Enter user's last name -->
+                    <label for="l_name">Last Name:</label>
+                    <input type="text" class="form-control" id="l_name">
+                </div>
+            </div>
+            <div class='row'>
+                <div class="col-md-6">
+                    <div class="form-group">
+
+                        <!-- Enter user's address -->
+                        <label for="address">Address:</label>
+                        <textarea class="form-control" rows="2" id="address"></textarea>
+                    </div>
+                    <div class="form-group">
+
+                        <!-- Enter user's post code -->
+                        <label for="postcode">Postcode:</label>
+                        <input type="text" class="form-control" id="postcode">
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+
+                    <!-- Enter user's delivery note -->
+                    <label for="Note">Delivery Note:</label>
+                    <textarea class="form-control" rows="5" id="note"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class='my-4'>
+            <!-- Button to checkout order and remove cart content -->
+            <button class='btn btn-success right' onclick="checkout();">Check Out</button>
+        </div>
+
+        <!-- Your footer and copyright -->
+        <footer class="page-footer font-small pt-4 mt-4">
+            <div class="footer-copyright py-3 text-center">
+                <div class="container-fluid">
+                    © 2018 Copyright:
+                    <a href="#"> <!-- Insert your URL here -->
+                        Idi Afandi <!-- Insert your Name here -->
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // run this function as soon as the web browser loaded this page
+        $(document).ready(function () {
+
+            // retrive cart content in local storage
+            var cart = localStorage.getItem("cart"); 
+
+            // convert cart to JSON   
+            var cartJSON = JSON.parse(cart);
+
+            // run AJAX function to fetch data from products.json
+            $.get("products.json", {}, function(data) {
+
+                // initialise string variable to hold the table of the orders
+                var string = "<table class='table table-hover'><thead><th>Number</th><th>Name</th><th>Unit Price</th><th>Quantity</th><th>Price</th></thead>";
+                
+                // set the number
+                var index = 1;
+
+                // initialise the grand total
+                var grandTotal = 0;
+                
+                // loop through products in the products.json
+                data.products.forEach(product => {
+                    // loop through the cart JSON object and add the content into string variable
+                    cartJSON.cart.forEach(cart => {
+                        // only add the product to the string which exist in the cart
+                        if(cart.id == product.id) {
+
+                            // calculate the total for each product order
+                            var total = cart.quantity * cart.price;
+
+                            // set the total to 2 decimal places
+                            total = total.toFixed(2);
+
+                            // add each product order total to grand total
+                            grandTotal += parseFloat(total);
+
+                            // add a row of each product order details into the string
+                            string += "<tr><td>"+ index +"</td><td>"+product.name+"</td><td>$ "+product.price+"</td><td>"+cart.quantity+"</td><td>$ "+total+"</td></tr>";
+                            
+                            // index + 1
+                            index++;
+                        }
+                    });
+                });
+
+                // add the grand total to the string
+                string += "</table><h4>Grand Total: $<span id='grandTotal'>"+grandTotal.toFixed(2)+"</span></h4>";
+
+                // Display the content of the string variable into div id=order-placements
+                $("#order-placements").html(string);
+            })
+        })
+    </script>
+    <script>
+        // function to checkout cart
+        function checkout() {
+            var f_name = $("#f_name").val(); // grab user first name
+            var l_name = $("#l_name").val(); // grab user last name
+            var address = $("#address").val(); // grab user address
+            var pCode = $("#postcode").val(); // grab user postcode
+            var note = $("#note").val(); // grab user delivery note
+            var grandTotal = $("#grandTotal").html(); // grab the grand total
+
+            // store user info details into userInfo variable as JS Object
+            var userInfo = {"f_name" : f_name, "l_name" : l_name, "address" : address, "postcode" : pCode};
+
+            // convert userInfo JS object to string and store it to local storage with the key of "user"
+            localStorage.setItem("user", JSON.stringify(userInfo));
+
+            // create new order details if no order detail stored in local storage
+            if (!localStorage.getItem("order")) 
+            {
+
+                // store order detail into order variable as JS Object
+                var order = { "order" : [{"grandTotal" : grandTotal, "note" : note}]};
+
+                // convert order JS Object to string and store it to local storage as "order"
+                localStorage.setItem("order", JSON.stringify(order));
+
+                // remove cart in local storage {since ia kana bali sudah duhh}
+                localStorage.removeItem("cart");
+
+                // notify user checkout is done successfully
+                alert("Chekout Successfully!");
+            } 
+
+            // if order already exist in local storage, just add the new order into the order details
+            else 
+            {
+                // store order detail into order variable as JS Object
+                var order = {"grandTotal" : parseFloat(grandTotal).toFixed(2), "note" : note};
+
+                // retrieve the existing order detail in the local storage 
+                var orderObject = localStorage.getItem("order");
+
+                // remove the last 2 character of orderObject
+                orderObject = orderObject.slice(0, -2);
+
+                // add the new order into existing order data 
+                orderObject += ", " + JSON.stringify(order) + "]}";
+
+                // set the newly updated order into local storage as "order"
+                localStorage.setItem("order", orderObject);
+
+                // remove the cart in local storage
+                localStorage.removeItem("cart");
+
+                // notify user checkout is done successfully
+                alert("Chekout Successfully!");
+            }
+
+            // redirect user back to home page
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // display shipping and user information and checkout page if already available
+        var userInfo = JSON.parse(localStorage.getItem("user"));
+        if (userInfo) {
+            $("#f_name").val(userInfo.f_name);
+            $("#l_name").val(userInfo.l_name);
+            $("#address").val(userInfo.address);
+            $("#postcode").val(userInfo.postcode);
+        }
+    </script>
+</body>
+</html>

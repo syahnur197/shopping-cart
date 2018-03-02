@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Shopping Cart</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Import stylesheets and javascript -->
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+		crossorigin="anonymous">
+	<link rel="stylesheet" href="assets/css/datatable.css">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+		crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js" integrity="sha384-feJI7QwhOS+hwpX2zkaeJQjeiwlhOP+SdQDqhgvvo1DsjtiSQByFdThsxO669S2D"
+		crossorigin="anonymous"></script>
+	<script src="assets/js/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class='jumbotron'>
+			<!-- Enter your online store's name here-->
+			<h1>Idi's Online Store</h1>
+		</div>
+
+		<!-- Place to put the welcome message -->
+		<div id="welcome-message">
+
+		</div>
+		
+		<!-- Button which redirects to view cart and checkout page -->
+		<a href="view-cart.html">
+			<button class='btn btn-block btn-primary'>Cart</button>
+		</a>
+		
+		<!-- 
+			Place to display available categories,
+			category can be clicked to display products
+			in that particular category 
+		-->
+		<div id="category-placements">
+		
+		</div>
+
+		<!-- 
+			Place to display the sorter buttons
+			you can also sort by adding
+			?sorter=h2l OR ?sorter=l2h
+			at the url
+			example: localhost/shopping-cart/index.html?sorter=h2l
+		-->
+		<div id="sorter-placement">
+			<div class='row'>
+				<div class='col-md-6'>
+					<button class='btn btn-warning btn-block' onclick="sort('l2h')">
+						Price: Low to High
+					</button>
+				</div>
+				<div class='col-md-6'>
+					<button class='btn btn-warning btn-block' onclick="sort('h2l')">
+						Price: High to Low
+					</button>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 
+			Place to display available products taken from JSON file 
+			Also shows the product name, description, price, quantity,
+			and add to cart button
+		-->
+		<div id="product-placements" class='my-3'>
+		</div>
+
+		<!-- Your footer and copyright -->
+		<footer class="page-footer font-small pt-4 mt-4">
+			<div class="footer-copyright py-3 text-center">
+				<div class="container-fluid">
+					© 2018 Copyright:
+					<a href="#"> <!-- Insert your URL here -->
+						Idi Afandi <!-- Insert your Name here -->
+					</a>
+				</div>
+			</div>
+		</footer>
+	</div>
+		
+	<script>
+		// run this function as soon as the web browser loaded this page
+		$(document).ready(function() {
+			// run AJAX function to fetch data from products.json
+			$.get("products.json", {}, function(data) {
+				// read the url from the address bar and assign it to url_string
+				var url_string = window.location.href; 
+
+				// create a URL object of the string
+				var url = new URL(url_string); 
+
+				/** 
+					Grab the parameter value of 'category_id' from the url
+				 	and assign it to variable id
+
+					Grab the parameter value of 'sorter' from the url
+					and assign ito to variable sorter
+				**/
+				var id = url.searchParams.get('category_id'); 
+				var sorter = url.searchParams.get('sorter');
+
+
+				/**
+					Sort the products
+						l2h - price: from low to high
+						h2l - price: from high to low
+				**/
+				if(sorter == 'l2h') {
+					data.products.sort(function (a, b) {
+						return parseFloat(a.price.substr(1)) - parseFloat(b.price.substr(1));
+					});
+				} else if (sorter == 'h2l') {
+					data.products.sort(function (a, b) {
+						return parseFloat(b.price.substr(1)) - parseFloat(a.price.substr(1));
+					});
+				}
+				
+				/**
+					Initialise new variables to be displayed on the page
+				**/
+				var string = "";
+				var catString = "";
+
+				// Loop through products and add product details to string variable
+				data.products.forEach(product => {
+					/**
+						If there is no category_id in the url parameter, return all products
+					**/
+					if(id == null) {
+						string +="<div class='row'>"
+							+"<div class='col-md-3'>"
+								+"<img class='img img-responsive' src='" + product.images[0].src +"' style='width:100%'>"
+							+"</div>"
+							+"<div class='col-md-6'>"
+									+"<h3>" + product.name + "</h3>"
+								+"<h4>" + product.price + "</h4>"
+								+"<p>" + product.description + "</p>"
+							+"</div>"
+							+"<div class='col-md-3'>"
+								+"<input type='number' id='quantity_"+product.id+"' class='form-control'/>"
+								+"<button class='btn btn-block btn-primary' onclick='addCart("+product.id+", "+product.price+",$(\"#quantity_"+product.id+"\").val())'>Add To Cart</button>"
+							+"</div>"
+						+"</div>";
+					} else { // return products of the category specified in the category_url parameter
+						if (product.category == id) {
+							string +="<div class='row'>"
+								+"<div class='col-md-3'>"
+									+"<img class='img img-responsive' src='" + product.images[0].src +"' style='width:100%'>"
+								+"</div>"
+								+"<div class='col-md-6'>"
+										+"<h3>" + product.name + "</h3>"
+									+"<h4>" + product.price + "</h4>"
+									+"<p>" + product.description + "</p>"
+								+"</div>"
+								+"<div class='col-md-3'>"
+									+"<input type='number' id='quantity_"+product.id+"' class='form-control'/>"
+									+"<button class='btn btn-block btn-primary' onclick='addCart("+product.id+", "+product.price+",$(\"#quantity_"+product.id+"\").val())'>Add To Cart</button>"
+								+"</div>"
+							+"</div>";
+
+						}
+					}
+				});
+
+				// Add 'All' button to catString
+				catString += "<div class='row my-3'>"
+					+"<div class='col-md-3'>"
+						+"<a href='index.html'>"
+							+"<button class='btn btn-block btn-success'>All</button>"
+						+"</a>"
+					+"</div>";
+				
+				// add all 'categories' button to catString
+				data.categories.forEach(category => {
+						catString +="<div class='col-md-3'>"
+							+"<a href='index.html?category_id="+category.id+"'>"
+								+"<button class='btn btn-block btn-success'>"+category.name+"</button>"
+							+"</a>"
+						+"</div>";
+				});
+
+				catString += "</div>";
+
+				// display the content of string variable to div id=product-placements
+				$("#product-placements").html(string);
+
+				// display the content of catString variable to div id=category-placements
+				$("#category-placements").html(catString);
+			})
+		});
+	</script>
+	<script>
+		// add product id, product price, and the quantity to cart
+		function addCart(id, price, quantity) {
+			// don't add anything if quantity is null, 0, or less than 0
+			if (quantity == "" || quantity == null || quantity <= 0) 
+			{
+				alert("Quantity cannot be empty, 0, or less than 0")
+			} 
+
+			// create new cart if there is no cart stored in local storage
+			else if (!localStorage.getItem("cart"))
+			{
+				// store the order using JS object format in order variable
+				var order = {"cart" : [{"id" : id, "quantity" : quantity, "price" : price} ]};
+
+				// convert order variable to string and store it to localstorage using 'cart' as the key
+				localStorage.setItem("cart", JSON.stringify(order));
+
+				// notify user product has been added to cart
+				alert("Add item successfully!");
+			}
+
+			// if a cart already exist, then just add the order into pre existing cart 
+			else 
+			{
+				// store the order using JS object format in order variable
+				var order = {"id" : id, "quantity" : quantity, "price" : price};
+
+				// get the already existing cart in the local storage
+				var cart = localStorage.getItem("cart");
+
+				// trim the last 2 character from the cart variable
+				cart = cart.slice(0, -2);
+
+				// convert the order variable to string 
+				cart += ", "+JSON.stringify(order) + "]}";
+				
+				// and add it to existing cart in local storage
+				localStorage.setItem("cart", cart);
+
+				// notify user product has been added to cart
+				alert("Add item successfully!");
+			}
+		}
+
+		// function to redirect the page to sorted products page
+		function sort(sort) {
+			// read the URL from address bar and assign it to url_tring
+			var url_string = window.location.href; 
+
+			// create a URL object of the url_string
+			var url = new URL(url_string);
+
+			// Grab the parameter value 'category_id' from the URL
+			var id = url.searchParams.get('category_id');
+
+			// intialise an empty string variable catUrl
+			var catUrl = "";
+
+			// if a product category is chosen
+			if (id != null) {
+				// add '&category_id=(the category id)' to the url
+				catUrl = "&category_id="+id;
+			}
+
+			// redirect the page to the url
+			window.location.href="index.html?sorter="+sort+catUrl;
+		}
+	</script>
+	<script>
+		// grab the value of user from local storage
+		var userInfo = JSON.parse(localStorage.getItem("user"));
+
+		// initialise a new variable message to be displayed in div=welcome-message 
+		var message = "Welcome!"
+		if (userInfo) {
+			// if user info is already exist in the local storage, change the message to
+			// 'Welcome back {first name} {last name}
+			message = "Welcome Back "+userInfo.f_name + " " + userInfo.l_name + "!";
+		}
+
+		// display the message in div=welcome-message
+		$("#welcome-message").html("<h5>"+message+"</h5>")
+	</script>
+</body>
+</html>
