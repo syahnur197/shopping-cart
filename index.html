@@ -52,12 +52,12 @@
 		<div id="sorter-placement">
 			<div class='row'>
 				<div class='col-md-6'>
-					<button class='btn btn-warning btn-block' onclick="sort('l2h')">
+					<button class='btn btn-warning btn-block' id="l2h_button">
 						Price: Low to High
 					</button>
 				</div>
 				<div class='col-md-6'>
-					<button class='btn btn-warning btn-block' onclick="sort('h2l')">
+					<button class='btn btn-warning btn-block' id="h2l_button">
 						Price: High to Low
 					</button>
 				</div>
@@ -145,7 +145,7 @@
 							+"</div>"
 							+"<div class='col-md-3'>"
 								+"<input type='number' id='quantity_"+product.id+"' class='form-control'/>"
-								+"<button class='btn btn-block btn-primary' onclick='addCart("+product.id+", "+product.price+",$(\"#quantity_"+product.id+"\").val())'>Add To Cart</button>"
+								+"<button class='btn btn-block btn-primary' id='product_no_" + product.id + "'>Add To Cart</button>"
 							+"</div>"
 						+"</div>";
 					} else { // return products of the category specified in the category_url parameter
@@ -161,7 +161,7 @@
 								+"</div>"
 								+"<div class='col-md-3'>"
 									+"<input type='number' id='quantity_"+product.id+"' class='form-control'/>"
-									+"<button class='btn btn-block btn-primary' onclick='addCart("+product.id+", "+product.price+",$(\"#quantity_"+product.id+"\").val())'>Add To Cart</button>"
+									+"<button class='btn btn-block btn-primary' id='product_no_" + product.id + "'>Add To Cart</button>"
 								+"</div>"
 							+"</div>";
 
@@ -193,7 +193,15 @@
 
 				// display the content of catString variable to div id=category-placements
 				$("#category-placements").html(catString);
-			})
+			}).done(function(data) {
+				// add event lister to each add to cart button
+				data.products.forEach(product => {
+					var button = document.getElementById("product_no_" + product.id);
+					button.addEventListener("click", function () {
+						addCart(product.id, product.price, $("#quantity_" + product.id ).val());
+					})
+				});
+			});
 		});
 	</script>
 	<script>
@@ -264,6 +272,18 @@
 			// redirect the page to the url
 			window.location.href="index.html?sorter="+sort+catUrl;
 		}
+
+		$(document).ready(function() {
+			// unnecessarily add event listener because life must be harder amirite
+			document.getElementById('h2l_button').addEventListener("click", function() {
+				sort('h2l');
+			})
+			// unnecessarily add event listener because life must be harder amirite
+			document.getElementById('l2h_button').addEventListener("click", function () {
+				sort('l2h');
+			})
+		});
+
 	</script>
 	<script>
 		// grab the value of user from local storage

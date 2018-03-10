@@ -69,7 +69,7 @@
         </div>
         <div class='my-4'>
             <!-- Button to checkout order and remove cart content -->
-            <button class='btn btn-success right' onclick="checkout();">Check Out</button>
+            <button class='btn btn-success right' id="checkout">Check Out</button>
         </div>
 
         <!-- Your footer and copyright -->
@@ -137,7 +137,10 @@
 
                 // Display the content of the string variable into div id=order-placements
                 $("#order-placements").html(string);
-            })
+            });
+
+            // unnecessarily add event listener because life must be harder amirite
+            document.getElementById("checkout").addEventListener("click", checkout);
         })
     </script>
     <script>
