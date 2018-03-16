@@ -112,13 +112,13 @@
 						l2h - price: from low to high
 						h2l - price: from high to low
 				**/
-				if(sorter == 'l2h') {
+				if (sorter == 'l2h') {
 					data.products.sort(function (a, b) {
-						return parseFloat(a.price.substr(1)) - parseFloat(b.price.substr(1));
+						return a.price - b.price;
 					});
 				} else if (sorter == 'h2l') {
 					data.products.sort(function (a, b) {
-						return parseFloat(b.price.substr(1)) - parseFloat(a.price.substr(1));
+						return b.price - a.price;
 					});
 				}
 				
